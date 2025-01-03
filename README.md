@@ -7,9 +7,21 @@ the only dependencies being `sh` and `ssh` and a *BSD operating system.
 
 ## Logic
 
-Each task is divided into 3 areas
+Each task is divided into 3 areas:
 
 * Checking the current system state
 * Performing the task
 * Checking the final system state
+
+## Design
+
+For more details on the design check [design.md](design.md)
+
+## Usage
+
+Check the manpage for usage examples
+
+```sh
+man rtctl
+```
 
