@@ -1,0 +1,4 @@
+pkg install smartmontools
+sysrc smartd_enable=YES
+
+# copy

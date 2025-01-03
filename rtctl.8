@@ -1,0 +1,70 @@
+.Dd 10th Apr 2020
+.Dt RTCTL 8
+.Os FreeBSD
+.\"
+.Sh NAME
+.Nm rtctl
+.Nd Utility for administering remote hosts.
+.\"
+.Sh SYNOPSIS
+.Nm
+.Op Fl l
+.Cm host
+.Cm task
+.Ar [...]
+.\"
+.Sh DESCRIPTION
+.Nm
+is designed to be a framework for your shell scripts, it offers some useful utility methods for general system administration tasks as well as providing a framework for your custom tasks.
+.Pp
+Think of it like Ansible for shell scripts.
+.Pp
+.Nm
+comes with some basic tasks such as ping and raw
+.\"
+.Sh OPTIONS
+.Bl -tag -width -indent
+.It Fl l
+Leave a log on the remote host.
+The log file will be timestamped with the current date and time with the name of the invoked task.
+.It Fl j
+Specify a Jump host for SSH.
+.It Fl u
+Specify a user for SSH.
+.It Fl p
+Specify a port for ssh.
+.El
+.\"
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It rtctl bastion ping
+Connect to the remote host 'bastion' and run the 'ping' task
+.It
+rtctl bastion ping
+Connect to the remote host 'bastion' and run the 'ping' task
+.It
+rtctl bastion raw ls -alh
+Connect to the remote host 'bastion' and run the raw SSH command 'ls -alh'
+.It
+rtctl -l bastion install-nginx
+Connect to the remote host 'bastion' and run the 'install-nginx' task, leaving a log file on the remote host
+.El
+.\"
+.Sh FILES
+.Bl -tag -width "/Users/joeuser/Library/really_long_file_name" -compact
+.It Pa /usr/local/etc/rtctl.conf
+Default settings
+.El
+.\"
+.Sh BUGS
+This is utility is in very early stage development, if you find any bugs please report them on the github page, thank you.
+.\"
+.Sh SEE ALSO
+Online documentation at
+.Ar https://github.com/dijitaltrix/remote-control .
+.Pp
+.\"
+.Xr rtctl.conf 8
+.\"
+.Sh AUTHORS
+.An Ian Grindley <ian@dijix.com>

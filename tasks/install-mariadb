@@ -1,0 +1,5 @@
+pkg install mariadb
+rcadm enable mysql
+mysql_secure_installation
+
+/dev/null in jail requires mount devfs; in jail.conf

@@ -1,0 +1,155 @@
+#!/bin/sh
+#
+# This script should be run if you are at the console of a freshly installed machine
+# 
+# It makes the following changes:
+# Adds a non privileged ssh user, makes them a member of the wheel group
+# and configures doas to allow them to escalate privilege to root.
+#
+# Updates SSH to only use keys and change the port from the default
+#
+# Sets up the authorized_keys file for the user so they can SSH in without passwords
+#
+#
+empty()
+{
+    [ "x${1}" == "x" ]
+} 
+get_input()
+{
+    local question=$1
+    while true
+    do
+        echo $question
+        read response
+        if ! empty $response; then
+            return $response
+        fi
+    done
+}
+get_input_yes_no()
+{
+    local question=$1
+    while true 
+    do
+        echo "$1"
+        read response
+        case $response in
+            [yY]* ) 
+                return true;
+                break;;
+            [nN]* ) 
+                return false;
+                break;;
+            * ) echo "Please enter Y or N"; 
+                break;;
+        esac
+    done
+}
+#get_input_integer()
+#get_input_string()
+#get_input_uri()
+file_exists()
+{
+    local file=$1
+    [ -f $file ]
+}
+folder_exists()
+{
+    local folder=$1
+    [ -d $folder ]
+}
+line_exists()
+{
+    local line=$1
+    local file=$2
+    if ! file_exists $file; then
+        return false;
+    fi
+    grep $line $file
+}
+pkg_exists()
+{
+    local $pkg=$1
+    pkg info $pkg
+}
+user_exists()
+{
+    local user=$1
+    id $user &2> /dev/null 
+}
+
+#
+#   Gather required information
+#
+name=get_input "What is the name of the login user? "
+uri=get_input "Where is the users public key? "
+ssh_port=get_input "What port do you want to use for SSH? "
+packages=get_input "What packages do you want to install? (separate by space, defaults are: ca_root_nss, doas)"
+
+
+#
+#   Configure system
+#
+
+#   Update ssh daemon config
+echo "Updating SSH config for keys only, using port $ssh_port"
+sed -ie "s/^[#?]Port 22/Port ${ssh_port}/g" /etc/ssh/sshd_config
+sed -ie 's/^[#?]PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
+sed -ie 's/^[#?]PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
+sed -ie 's/^[#?]ChallengeResponseAuthentication yes/ChallengeResponseAuthentication no/g' /etc/ssh/sshd_config
+
+#   Add user
+if user_exists $user; then
+    echo "User $user exists"
+else
+    echo "Creating user $user "
+    pw useradd -m -n $user -s /bin/tcsh -d /home/$user -G wheel -L default
+    echo "Granting doas permissions to $user"
+    echo "permit $user as root" > /usr/local/etc/doas.conf
+fi
+
+#   Fetch SSH user key and setup user ssh access
+if file_exists /home/$user/.ssh/authorized_keys; then
+    echo "User $user has authorized_keys"
+else
+    echo "Setting up SSH access for $user"
+    echo "Fetching SSH key for $user"
+    fetch --user-agent="Mozilla/5.0" "$uri" -o /root/$user.keys
+    if [ ! $? ]; then
+        echo "Cannot fetch from that location, please try again or ^C to exit"
+        exit
+    else
+        echo "Creating authorized_keys for $user"
+        if ! folder_exists /home/$name/.ssh; then
+            mkdir /home/$name/.ssh
+            mv /root/$user.keys /home/$user/.ssh/authorized_keys
+        fi
+        chown -R $user:$user /home/$user
+        chmod 0600 /home/$user/.ssh/authorized_keys
+        chmod 0700 /home/$user/.ssh
+    fi
+fi
+
+#   Install packages
+echo "Installing package manager"
+pkg update -y
+ps=""
+for $package in "ca_root_nss doas $packages"
+do
+    if ! pkg_exists $package; then
+        $ps="${ps} $package"
+    fi
+    # install remaining packages
+    pkg install -y $ps
+done
+
+
+echo "Done";
+
+if get_input_yes_no "Do you want to update the system?"; then
+    freebsd-update fetch install
+fi
+if get_input_yes_no "All done, reboot the system now?"; then
+    reboot
+fi

@@ -1,0 +1,33 @@
+# name of the jail to create
+name=
+# ip addres sof the new jail
+ip=
+# location of jails
+jail_zroot=
+# snapshot to clone from
+clone=
+... optional
+limit_cpu=""
+limit_mem=""
+
+
+# for all jails
+cp /etc/resolv.conf .. jail
+cp /etc/localtime .. jail
+touch jail /etc/fstab
+touch jail /etc/rc.conf
+
+
+# make jail folder
+mkdir /jails/$name
+# or make dataset
+zfs create /jails/$name
+
+# or clone from snapshot
+zfs clone $snapshot $chroot zroot/jails/bastion@initial zroot/jails/$name
+
+
+add to rctl.conf
+# $name limits
+jail:$name:memoryuse:deny=$limit_mem/jail
+jail:$name:pcpu:deny=$limit_cpu/jail

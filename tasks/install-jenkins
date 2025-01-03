@@ -1,0 +1,6 @@
+# if jailed
+pkg -j build install jenkins
+# if not
+pkg install jenkins
+
+sysrc jenkins_enable=YES

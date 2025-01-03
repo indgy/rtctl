@@ -1,0 +1,5 @@
+# rtctl hosts
+# Enter the names of the hosts you want to run tasks on, one per line
+# e.g.
+# www.example.com
+

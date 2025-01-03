@@ -1,0 +1,104 @@
+folder=/jails/build/usr/local/jenkins
+# copy jenkins.war to my user account
+scp ~/Downloads/jenkins.war beastie:~
+# stop jail
+doas service jail stop jenkins
+# remove any old jenkins versions
+doas rm $folder/war/jenkins.war.old
+# backup old jenkins
+doas mv $folder/war/jenkins.war $folder/war/jenkins.war.old
+# move new jenkins
+doas mv jenkins.war $folder/war/jenkins.war
+# set ownership
+doas chown $owner:$owner $folder/war/jenkins.war
+# start jail
+doas service jail start jenkins
+
+#!/bin/sh
+
+jail=build
+uri=http://updates.jenkins-ci.org/download/war/2.230/jenkins.war
+folder=/jails/$jail/usr/local/jenkins
+owner=818
+
+file_exists()
+{
+    [ -f $1 ]
+}
+file_move()
+{
+    #check we have permission
+    #move file
+}
+file_writeable()
+{
+    test -w $1
+}
+jail_stop()
+{
+
+}
+jail_start()
+{
+
+}
+fetch_from_uri()
+{
+    local file=`basename ${1}`
+
+    echo "Fetching from '${1}'"
+    if [ -f ./$file ]; then
+        echo "File ${file} is already downloaded, remove or rename the file if you want to download again";
+        return true
+    fi
+    fetch $1 -o $file
+    if [ $? ]; then
+        echo "Failed to fetch from ${1}";
+        return false
+    fi
+}
+
+echo "Updating Jenkins in '${folder}'"
+if ! file_exists $folder/war/jenkins.war || ! file_writeable $folder/war/jenkins.war; then
+    echo "Cannot continue";
+    exit;
+fi
+
+exit
+
+# grab updated jenkins.war
+if ! fetch_from_uri $uri; then
+    exit;
+fi
+
+# stop jail
+echo "Stopping jail $jail"
+doas service jail stop $jail
+if [ $? ]; then
+	echo "Failed to stop jail $jail"; exit;
+fi
+
+# remove any old jenkins versions
+if -f [ $folder/war/jenkins.war.old ]; then
+    echo "Removing old backup"
+    doas rm $folder/war/jenkins.war.old
+fi
+
+# backup old jenkins
+echo "Backing up current Jenkins version"
+doas mv $folder/war/jenkins.war $folder/war/jenkins.war.old
+
+# move new jenkins
+echo "Installing new Jenkins version"
+doas mv jenkins.war $folder/war/jenkins.war
+# set ownership
+doas chown $owner:$owner $folder/war/jenkins.war
+
+# start jail
+echo "Starting jail $jail"
+doas service jail start $jail
+if [ $? ]; then
+	echo "Failed to start jail $jail"; exit;
+fi
+
+echo "Done, please check the new install, if it didn't work use restore-jenkins.sh"

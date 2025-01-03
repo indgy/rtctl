@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Issue an SSL certificate for a website
+
+host=bastion
+domain=$host.ignition-studios.com
+webroot=/jails/bastion/usr/local/www/$host
+certpath=/jails/bastion/usr/local/etc/nginx/ssl/$host
+keypath=$certpath
+capath=$certpath
+
+if [ ! -d $certpath ]; then
+    mkdir -p $certpath
+fi
+
+acme.sh --issue -d $domain -w $webroot \
+    --certpath $certpath \
+    --keypath $certpath \
+    --capath $certpath

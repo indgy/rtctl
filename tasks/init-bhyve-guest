@@ -1,0 +1,17 @@
+name=windows
+cpu=2
+disk_size=16G
+mem=1024M
+
+
+-i boot cd (first run to install)
+-I location of cd image to boot
+
+# create disk
+truncate -s $disk_size $name.img
+# or on zfs
+zfs create -V$disk_size -o volmode=dev zroot/vms/$name
+
+# linux guests require grub2-bhyve
+
+# windows guests require UEFI framebuffer

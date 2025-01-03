@@ -1,0 +1,24 @@
+# /etc/rc.conf contains:
+jail_enable="YES"
+
+# create global jails.conf:
+exec.start = "/bin/sh /etc/rc";
+exec.stop = "/bin/sh /etc/rc.shutdown";
+exec.clean;
+mount.devfs;
+host.hostname = "$name.ignition-studios.com"
+path = "/zroot/jails/$name"
+
+# make folder or dataset for jails:
+zfs create -o mountpoint=
+
+# create shortcut to jails
+ln -s /usr/local/jails /jails
+
+# fetch base
+fetch http:// -o /tmp/base.txz
+
+# extract to base jail
+tar -xf base.txz /jails/bastion
+freebsd-update -b /jails/bastion fetch install
+freebsd-update -b /jails/bastion IDS

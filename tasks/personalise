@@ -1,0 +1,4 @@
+#!/bin/sh
+
+copy motd
+set clear on logout
